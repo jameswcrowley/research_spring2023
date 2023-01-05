@@ -6,19 +6,24 @@ import zipfile
 import shutil
 import matplotlib.pyplot as plt
 import glob
+from math import ceil
 
 
-def hinode_assemble(output_name, input_filepath='.', output_filepath='.', correct=True, normalize=True, lambda_length = 112):
+def hinode_assemble(output_name, steps, input_filepath='.', output_filepath='.', correct=True, normalize=True, lambda_length = 112):
     """
         Hinode Assemble: Finds all fits scans in a specified folder, assembles, corrects, and normalizes.
                 _____________
                 Inputs: 1. output_name: the name of the saved fits file
-                        2. input_filepath: the filepath to the fits slit scans. default = '.'
-                        3. output_filepath: where to put saved fits file. default = '.'
-                        4. correct: boolean, do you want to correct for "overspill" of counts in some Hinode datasets?
-                        5. normalize: boolean, divide all stokes vectors by the mean of the stokes I continuum
+                        2. steps: # of steps per scan. For time series datasets.
+                        3. input_filepath: the filepath to the fits slit scans. default = '.'
+                        4. output_filepath: where to put saved fits file. default = '.'
+                        5. correct: boolean, do you want to correct for "overspill" of counts in some Hinode datasets?
+                        6. normalize: boolean, divide all stokes vectors by the mean of the stokes I continuum
+                        7. lambda_length: wavelength axis: 60 for cutting first line, 112 for both lines.
                 _____________
                 Outputs: saves an assembled fits file: corrected, normalized, and in SIR format.
+                         Shape is (stokes, llambda, x, y) for single datasets and
+                         (stokes, llambda, x, y, time) for time series.
         """
 
     filenames = []
@@ -64,23 +69,38 @@ def hinode_assemble(output_name, input_filepath='.', output_filepath='.', correc
         continuum = np.mean(stokes[0, :10, :, :])
         stokes = np.true_divide(stokes, continuum)
 
+    if steps is not None:
+        stacked_mod = 'stacked.'
+        shape = list(stokes.shape)
+        x = shape.pop(2)  # get rid of old x-coordinate
+        shape.insert(2, steps)  # inserts
+
+        num_time_steps = ceil(x / steps)
+
+        stokes_stacked = np.zeros(list(stokes.shape).append(num_time_steps))
+        for time_step in num_time_steps:
+            stokes_stacked[:, :, :, :, time_step] = stokes[:, :, time_step * steps: (time_step + 1) * steps, :]
+
+        stokes = stokes_stacked
+
     hdu = fits.PrimaryHDU(stokes)
     hdu.header = fits.open(input_filepath + name)[0].header
-    hdu.writeto(output_filepath + 'a.' + correct_mod + normalize_mod + output_name, overwrite=True)
+    hdu.writeto(output_filepath + 'a.' + correct_mod + normalize_mod + stacked_mod + output_name, overwrite=True)
     print('Saved fits successfully at : ' + output_filepath + output_name)
     print('-------------------------------')
 
 
-def unzip(zip_name, assembled_filepath='../assembled_fits/', remove_zips=False, path_to_zip='../'):
+def unzip(zip_name, time_steps, assembled_filepath='../assembled_fits/', remove_zips=False, path_to_zip='../'):
     """
     Unzip: given a filepath and a filename, unzip the file, assemble the data (via calling hinode_assemble),
             and finally, delete the folder and scans.
             _____________
             Inputs: 1. assembled_filepath: filepath to send assembled to
+                    2. time_steps: number of slits per scan, for time-series observations.
+                       Put None if a single observation.
                     2. remove_zips: whether to remove zips, default is False
-                    3. directory_to_extract_to: directory to which extract slits. this needs to be removed later....
-                    4. zip_name
-                    5. path_to_zip
+                    3. zip_name
+                    4. path_to_zip
             _____________
             Outputs: saves an assembled fits file via hinode_assemble to the directory assembled_filepath
     """
@@ -107,15 +127,10 @@ def unzip(zip_name, assembled_filepath='../assembled_fits/', remove_zips=False, 
         name = all_data_dirs[data_dir_i][-15:]
 
         hinode_assemble(output_name=name + '.fits',
+                        steps=time_steps,
                         input_filepath=data_dir + '/',
                         output_filepath=assembled_filepath)
-    #remove the slits:
-    # try:
-    #     shutil.rmtree(path_to_zip + temp_slit_folder_name)
-    # except OSError as e:
-    #     print("Error: %s - %s." % (e.filename, e.strerror))
 
-    # remove the zips if remove_zips is true :
     if remove_zips:
         try:
             shutil.rmtree(path_to_zip + zip_name)
