@@ -72,14 +72,21 @@ def hinode_assemble(output_name, steps, input_filepath='.', output_filepath='.',
     if steps is not None:
         stacked_mod = 'stacked.'
         shape = list(stokes.shape)
-        x = shape.pop(2)  # get rid of old x-coordinate
-        shape.insert(2, steps)  # inserts
+        print(shape)
+        x = shape.pop(3)  # get rid of old x-coordinate
+        shape.insert(3, steps)  # inserts number of time steps
 
         num_time_steps = ceil(x / steps)
-
-        stokes_stacked = np.zeros(list(stokes.shape).append(num_time_steps))
-        for time_step in num_time_steps:
-            stokes_stacked[:, :, :, :, time_step] = stokes[:, :, time_step * steps: (time_step + 1) * steps, :]
+        shape.append(num_time_steps)
+        print(shape)
+        stokes_stacked = np.zeros(shape)
+        print(num_time_steps)
+        for time_step in range(num_time_steps):
+            if time_step != num_time_steps - 1:
+                stokes_stacked[:, :, :, :, time_step] = stokes[:, :, :, time_step * steps:(time_step + 1) * steps]
+            else:
+                mod = x % steps
+                stokes_stacked[:, :, :, :mod, time_step] = stokes[:, :, :, time_step * steps:(time_step + 1) * steps]
 
         stokes = stokes_stacked
 
