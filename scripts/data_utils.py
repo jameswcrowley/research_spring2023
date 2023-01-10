@@ -239,7 +239,7 @@ def quicklook(input_filepath):
     plt.savefig(input_filepath + 'quicklook.png')
 
 
-def unstack(path_to_stacked_data, stacked_data, path_to_unstack):
+def unstack(path_to_stacked_data, stacked_data, path_to_unstack, num_to_unstack=None):
     """
     idea 2: instead of making a list, just make a folder and unstack data into it. Then, when you
 
@@ -259,9 +259,14 @@ def unstack(path_to_stacked_data, stacked_data, path_to_unstack):
     except:
         print('Unstacked Fits Folder Already Exits.')
 
+    if num_to_unstack is not None:
+        num_stacks = num_to_unstack
+    else:
+        pass
+
     for i in range(num_stacks):
         data_temp = data[:, :, :, :, i]
         hdu = fits.PrimaryHDU(data_temp)
-        hdu.writeto(path_to_unstack + folder_name + '/stack_' + str(i) + '.fits')
+        hdu.writeto(path_to_unstack + folder_name + '/stack_' + str(i) + '.fits', overwrite=True)
 
-    print('Successfully unstacked ' + str(num_stacks) + ' in ' + path_to_unstack + folder_name)
+    print('Successfully unstacked ' + str(num_stacks) + ' in ' + folder_name)
