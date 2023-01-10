@@ -9,7 +9,8 @@ import glob
 from math import ceil
 
 
-def hinode_assemble(output_name, steps, input_filepath='.', output_filepath='.', correct=True, normalize=True, lambda_length = 112):
+def hinode_assemble(output_name, steps, input_filepath='.', output_filepath='.', correct=True, normalize=True,
+                    lambda_length=112):
     """
         Hinode Assemble: Finds all fits scans in a specified folder, assembles, corrects, and normalizes.
                 _____________
@@ -227,7 +228,7 @@ def quicklook(input_filepath):
     data_list = glob.glob(input_filepath + 'a.*.fits')
     N = len(data_list)
 
-    plt.figure(figsize=[5*N, 3])
+    plt.figure(figsize=[5 * N, 3])
 
     for i in range(N):
         temp_data = fits.open(input_filepath + data_list[i])[0].data
@@ -236,3 +237,36 @@ def quicklook(input_filepath):
         plt.colorbar()
         plt.title(data_list[i])
     plt.savefig(input_filepath + 'quicklook.png')
+
+
+def unstack(path_to_stacked_data, stacked_data, path_to_unstack, num_to_unstack=None):
+    """
+    idea 2: instead of making a list, just make a folder and unstack data into it. Then, when you
+
+    """
+    try:
+        data = fits.open(path_to_stacked_data + stacked_data)[0].data
+    except:
+        print('Data not found.')
+        return None
+
+    assert len(data.shape) == 5
+    num_stacks = data.shape[4]
+
+    try:
+        folder_name = path_to_unstack + str(stacked_data)[:-5] + '_unstacked'
+        os.mkdir(folder_name)
+    except:
+        print('Unstacked Fits Folder Already Exits.')
+
+    if num_to_unstack is not None:
+        num_stacks = num_to_unstack
+    else:
+        pass
+
+    for i in range(num_stacks):
+        data_temp = data[:, :, :, :, i]
+        hdu = fits.PrimaryHDU(data_temp)
+        hdu.writeto(path_to_unstack + folder_name + '/stack_' + str(i) + '.fits', overwrite=True)
+
+    print('Successfully unstacked ' + str(num_stacks) + ' in ' + folder_name)
