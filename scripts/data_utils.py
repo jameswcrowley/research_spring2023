@@ -239,13 +239,13 @@ def quicklook(input_filepath):
     plt.savefig(input_filepath + 'quicklook.png')
 
 
-def unstack(stacked_data, path_to_unstack):
+def unstack(path_to_stacked_data, stacked_data, path_to_unstack):
     """
     idea 2: instead of making a list, just make a folder and unstack data into it. Then, when you
 
     """
     try:
-        data = fits.open(stacked_data)[0].data
+        data = fits.open(path_to_stacked_data + stacked_data)[0].data
     except:
         print('Data not found.')
         return None
