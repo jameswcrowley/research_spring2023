@@ -254,13 +254,14 @@ def unstack(path_to_stacked_data, stacked_data, path_to_unstack):
     num_stacks = data.shape[4]
 
     try:
-        os.mkdir(path_to_unstack + str(stacked_data)[:4])
+        folder_name = path_to_unstack + str(stacked_data)[:-5] + '_unstacked'
+        os.mkdir(folder_name)
     except:
         print('Unstacked Fits Folder Already Exits.')
 
     for i in range(num_stacks):
         data_temp = data[:, :, :, :, i]
         hdu = fits.PrimaryHDU(data_temp)
-        hdu.writeto(path_to_unstack + 'unstacked/' + 'stack_' + str(i) + str(stacked_data), overwrite=True)
+        hdu.writeto(path_to_unstack + folder_name + '/stack_' + str(i) + '.fits')
 
-    print('Successfully unstacked ' + str(num_stacks) + ' in ' + path_to_unstack + str(stacked_data)[:4])
+    print('Successfully unstacked ' + str(num_stacks) + ' in ' + path_to_unstack + folder_name)
