@@ -267,6 +267,6 @@ def unstack(path_to_stacked_data, stacked_data, path_to_unstack, num_to_unstack=
     for i in range(num_stacks):
         data_temp = data[:, :, :, :, i]
         hdu = fits.PrimaryHDU(data_temp)
-        hdu.writeto(path_to_unstack + folder_name + '/stack_' + str(i) + '.fits', overwrite=True)
+        hdu.writeto(folder_name + '/stack_' + str(i) + '.fits', overwrite=True)
 
     print('Successfully unstacked ' + str(num_stacks) + ' in ' + folder_name)
