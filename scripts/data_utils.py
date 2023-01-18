@@ -9,13 +9,19 @@ import glob
 from math import ceil
 
 
-def hinode_assemble(output_name, steps, input_filepath='.', output_filepath='.', correct=True, normalize=True,
+def hinode_assemble(output_name,
+                    steps,
+                    input_filepath='.',
+                    output_filepath='.',
+                    correct=True,
+                    normalize=True,
                     lambda_length=112):
     """
         Hinode Assemble: Finds all fits scans in a specified folder, assembles, corrects, and normalizes.
                 _____________
                 Inputs: 1. output_name: the name of the saved fits file
                         2. steps: # of steps per scan. For time series datasets.
+                           Leave none for flat, non-stacked data.
                         3. input_filepath: the filepath to the fits slit scans. default = '.'
                         4. output_filepath: where to put saved fits file. default = '.'
                         5. correct: boolean, do you want to correct for "overspill" of counts in some Hinode datasets?
@@ -64,6 +70,7 @@ def hinode_assemble(output_name, steps, input_filepath='.', output_filepath='.',
                         stokes_new[0, l, i, j] = stokes[0, l, i, j] + 65536
                     else:
                         stokes_new[0, l, i, j] = stokes[0, l, i, j]
+        stokes_new[1:] = stokes[1:]
         stokes = stokes_new
     # normalize:
     if normalize:
@@ -113,7 +120,7 @@ def unzip(zip_name, time_steps, assembled_filepath='../assembled_fits/', remove_
             _____________
             Outputs: saves an assembled fits file via hinode_assemble to the directory assembled_filepath
     """
-    print(path_to_zip + zip_name)
+    print('Unzipping:' + path_to_zip + zip_name)
     with zipfile.ZipFile(path_to_zip + zip_name, 'r') as zip_ref:
         temp_slit_folder_name = 'temp'
         # create a temporary folder to put fits slits into:
