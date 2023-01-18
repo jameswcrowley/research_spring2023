@@ -32,6 +32,7 @@ def hinode_assemble(output_name, steps, input_filepath='.', output_filepath='.',
 
     correct_mod = ''
     normalize_mod = ''
+    stacked_mod = ''
 
     for file in sorted(os.listdir(input_filepath)):
         if file.endswith(input_format):
