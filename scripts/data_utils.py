@@ -10,7 +10,7 @@ from math import ceil
 
 
 def hinode_assemble(output_name,
-                    steps,
+                    steps=None,
                     input_filepath='.',
                     output_filepath='.',
                     correct=True,
@@ -106,7 +106,7 @@ def hinode_assemble(output_name,
     print('-------------------------------')
 
 
-def unzip(zip_name, time_steps, assembled_filepath='../assembled_fits/', remove_zips=False, path_to_zip='../'):
+def unzip(zip_name, time_steps=None, assembled_filepath='../assembled_fits/', remove_zips=False, path_to_zip='../'):
     """
     Unzip: given a filepath and a filename, unzip the file, assemble the data (via calling hinode_assemble),
             and finally, delete the folder and scans.
